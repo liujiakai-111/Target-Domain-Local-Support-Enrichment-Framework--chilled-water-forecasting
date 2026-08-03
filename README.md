@@ -1,53 +1,74 @@
 # Target Domain Local Support Enrichment for Chilled Water Load Forecasting
 
-This repository contains the code, experiment configurations, and reproducibility workflow for target domain local support enrichment in office chilled water load forecasting with limited target data.
+> **Code availability:** The complete implementation and reproducibility materials will be released in this repository after the associated manuscript is accepted for publication.
 
 ## Overview
 
-Accurate chilled water load forecasting is difficult when a target building has only a short operating history. This project addresses that problem without transferring knowledge from source buildings or using synthetic labels during supervised training.
+This repository provides information about a target domain local support enrichment framework for office chilled water load forecasting with limited target data.
 
-The proposed framework generates conditional residual trajectories from the observed target building. Generated candidates are evaluated using operational plausibility, forecast utility estimated from support data, temporal consistency within observed operating regimes, and balanced sampling.
+The method is designed for buildings with only a short operating history. It does not rely on source buildings and does not use synthetic labels during supervised model training.
+
+The framework generates conditional residual trajectories from the observed target building. Generated candidates are evaluated through operational plausibility screening, forecast utility estimated from support data, temporal screening within observed operating regimes, and balanced sampling.
 
 Selected synthetic windows are used only during self-supervised learning (SSL). Final supervised training uses real target labels only.
 
-The framework compares three forecasting configurations:
+## Method Summary
+
+The complete workflow contains five main stages:
+
+1. **Chronological data splitting**
+
+   Each building is divided into support, validation, and test periods in chronological order. The support period is varied from 1 to 28 days, while the validation and test periods remain fixed.
+
+2. **Input window construction**
+
+   Historical chilled water load, weather variables, and calendar variables are converted into sliding windows for one hour ahead forecasting.
+
+3. **Conditional residual trajectory generation**
+
+   Continuous residual trajectories are generated using weather and calendar context from the target building. The residuals are combined with paired real trajectories before sliding windows are extracted.
+
+4. **Candidate screening and sampling**
+
+   Generated candidates are evaluated using operational plausibility, forecast utility estimated from support data, temporal consistency within the same observed regime, and balanced sampling across trajectories and anchors.
+
+5. **Forecasting and final evaluation**
+
+   Three forecasting configurations are compared using the same LSTM backbone and the same real labeled support data during final supervised training.
+
+## Forecasting Configurations
+
+The experiments compare three configurations:
 
 - **Branch A:** supervised learning using real labeled support data;
 - **Branch B:** SSL using real support data, followed by supervised training using real labels;
-- **Strategy C:** validation selected use of SSL with synthetic support, with fallback to Branch A when the synthetic option is invalid or does not improve validation performance.
+- **Strategy C:** validation selected use of SSL with selected synthetic support, with fallback to Branch A when the synthetic option is invalid or does not improve validation performance.
 
-## Main Features
-
-- Target building data are used without relying on source buildings.
-- Continuous residual trajectories are generated before sliding window extraction.
-- Weather and calendar variables provide operating context.
-- Synthetic candidates are screened using support data only.
-- Synthetic windows are used only during SSL.
-- Supervised training uses real target labels only.
-- Validation selects the synthetic ratio and controls fallback.
-- Main experiments, ablations, external cases, and figure generation are included in the planned release.
+Synthetic windows are not used as supervised labels in any configuration.
 
 ## Experimental Scope
 
-The main experiment contains:
+The main experiment includes:
 
 - 30 office buildings with chilled water measurements;
 - eight support lengths: 1, 3, 5, 7, 10, 14, 21, and 28 days;
 - one hour ahead load forecasting;
 - Branch A, Branch B, and Strategy C comparisons;
 - three random seeds;
-- module ablation studies;
+- module ablation experiments;
 - candidate screening diagnostics;
 - site deletion sensitivity analysis;
 - case level heterogeneity analysis.
 
-Two additional HVAC datasets are used as exploratory feasibility cases.
+Two related HVAC datasets are included as exploratory feasibility cases.
 
 ## Repository Status
 
-The code used for the manuscript is currently being reorganized into a clear and reproducible structure.
+This repository currently provides project information and describes the planned reproducibility package.
 
-Raw datasets, model checkpoints, and large intermediate files are not distributed in this repository. Reproduction commands will be added after the experiment scripts and configurations have been checked and organized.
+The complete source code, experiment configurations, data processing workflow, result aggregation scripts, and figure generation scripts are being organized. They will be released in this repository after the associated manuscript is accepted for publication.
+
+Before the official release, this repository should not be considered a complete or executable implementation of the proposed method.
 
 ## Planned Repository Structure
 
@@ -106,11 +127,13 @@ The original experiments were conducted with:
 - PyTorch 2.5.1
 - CUDA 11.8
 
-The CUDA version is not mandatory. A CPU installation of PyTorch can also be used, although model training will be slower.
+CUDA is not mandatory. A CPU installation of PyTorch can also be used, although model training will be slower.
 
 ## Installation
 
-Clone the repository:
+Installation and execution will be available after the official code release.
+
+After release, the repository can be cloned using:
 
 ```bash
 git clone https://github.com/liujiakai-111/target-domain-chilled-water-forecasting.git
@@ -123,13 +146,13 @@ Create a Python virtual environment:
 python -m venv .venv
 ```
 
-Activate it on Windows PowerShell:
+Activate the environment on Windows PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Activate it on Linux or macOS:
+Activate the environment on Linux or macOS:
 
 ```bash
 source .venv/bin/activate
@@ -152,7 +175,7 @@ The exploratory cases use the following datasets:
 
 Raw data are not redistributed in this repository. Users should obtain the datasets from their original sources and comply with the corresponding licenses and terms of use.
 
-Downloaded files should be stored locally under:
+After downloading, raw data should be stored locally under:
 
 ```text
 data/raw/
@@ -164,38 +187,44 @@ Processed feature files should be stored under:
 data/processed/
 ```
 
-Both directories are excluded from Git tracking.
+These directories are excluded from Git tracking.
 
 ## Reproduction
 
-The organized release will provide commands for:
+Detailed reproduction instructions will be released after the associated manuscript is accepted for publication.
+
+The planned release will include commands for:
 
 1. selecting and preparing the 30 target buildings;
 2. constructing the engineered feature table;
 3. running the main experiment at all eight support lengths;
 4. running Branch A, Branch B, and Strategy C;
 5. running the module ablation experiments;
-6. running the external HVAC cases;
+6. running the exploratory external HVAC cases;
 7. aggregating case and site results;
 8. generating the manuscript figures.
 
-Detailed commands will be added after the corresponding scripts and configurations have been verified.
+Raw datasets will not be included in the repository. Users will need to obtain them from the original sources.
 
 ## Results
 
-Compact numerical summaries used in the manuscript will be stored in:
+Compact numerical summaries used in the manuscript will be released under:
 
 ```text
 results/summary/
 ```
 
-Large per-run outputs, model checkpoints, temporary candidate pools, and processed datasets are excluded from the repository.
+Large per-run outputs, model checkpoints, temporary candidate pools, and processed datasets will not be uploaded.
 
-The committed summaries should contain enough information to reproduce the reported tables and figures without publishing restricted raw data.
+The released summaries will contain the information needed to reproduce the reported tables and figures without redistributing restricted raw data.
 
 ## Citation
 
-If you use this repository, please cite the associated manuscript:
+The associated manuscript is currently under review.
+
+If you are interested in this work, please follow this repository for future updates. The complete journal citation, DOI, and BibTeX entry will be added after the manuscript is accepted and published.
+
+Preliminary manuscript information:
 
 ```text
 Liu, J., and Chen, Y. Target Domain Local Support Enrichment through
@@ -204,13 +233,20 @@ Chilled Water Load Forecasting with Limited Target Data.
 Manuscript under review.
 ```
 
-The complete journal citation and DOI will be added after publication.
-
 ## License
 
-The source code is released under the [MIT License](LICENSE).
+The source code will be released under the [MIT License](LICENSE).
 
-The MIT License applies only to the code in this repository. Dataset licenses, copyrights, and terms of use remain with the original data providers.
+The MIT License applies only to the source code in this repository. Dataset licenses, copyrights, and terms of use remain with the original data providers.
+
+## Contact
+
+**Jiakai Liu**  
+School of Energy and Power Engineering  
+University of Shanghai for Science and Technology  
+Shanghai 200093, China  
+
+Email: [1602252955@qq.com](mailto:1602252955@qq.com)
 
 ## Contact
 
