@@ -45,3 +45,32 @@ Install the required packages with:
 
 ```bash
 pip install -r requirements.txt
+
+## Data
+
+The main experiment uses office chilled water data from the Building Data Genome Project 2 (BDG2).
+
+The exploratory cases use the following datasets:
+
+- [LBNL Building 59](https://bbd.labworks.org/ds/bbd/lbnlbldg59)
+- [ORNL Flexible Research Platform data via the TUM EMT Open Energy Data Collection](https://collab.dvb.bayern/spaces/TUMenmantech/pages/557810667/TUM-EMT+Open+Energy+Data+Collection)
+
+Raw data are not redistributed in this repository. Users should obtain the datasets from their original sources and comply with the corresponding licenses and terms of use.
+
+## Reproduction
+
+Detailed commands for data preparation, the main experiment, ablation studies, external cases, result aggregation, and figure generation will be added with the organized code release.
+
+## Citation
+
+If you use this repository, please cite the associated manuscript. The complete citation and DOI will be added after publication.
+
+## License
+
+The source code is released under the [MIT License](LICENSE). Dataset licenses and terms of use remain with the original data providers.
+
+## Contact
+
+**Jiakai Liu**  
+School of Energy and Power Engineering  
+University of Shanghai for Science and Technology
