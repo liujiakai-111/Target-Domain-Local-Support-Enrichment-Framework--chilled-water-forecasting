@@ -1,153 +1,201 @@
-# Transfer Learning for Building Energy Prediction
+# Target Domain Enhancement for Cooling Load Forecasting with Limited Data
 
-This repository contains the implementation code and data processing pipelines for our paper:
+This repository supports the manuscript:
 
-**"A Dynamic Time Warping-Enhanced Transfer Learning Framework for Cooling Load Prediction in Data-Scarce Buildings: A Multi-Building Case Study"**
+**“Building cooling load forecasting with limited data: A few-shot target domain enhancement (TDE) framework”**
 
-## Current Status
+## Current status
 
-**Note**: The complete source code is currently being prepared for public release and will be made available upon the final acceptance of the manuscript. This repository is established in accordance with reproducibility and open science guidelines.
+The complete source code and processing pipeline are being organized for public release. They will be uploaded to this repository after the manuscript is formally accepted, with the release planned within two weeks of acceptance.
 
-**Expected release timeline**: Within 2 weeks after manuscript acceptance.
+Until then, this README records the study design, data sources, expected repository structure, and reproducibility plan. The results reported here correspond to the submitted manuscript.
 
-## Paper Information
+## Paper information
 
-- **Title**: A Dynamic Time Warping-Enhanced Transfer Learning Framework for Cooling Load Prediction in Data-Scarce Buildings: A Multi-Building Case Study
-- **Authors**: Jiakai Liu, Yongbao Chen*, Zhe Chen
-- **Affiliations**: 
+- **Authors:** Jiakai Liu, Yongbao Chen*, Jiahang Luo, and Zhe Chen
+- **Affiliations:**
   - School of Energy and Power Engineering, University of Shanghai for Science and Technology, Shanghai, China
   - Department of Building Environment and Energy Engineering, The Hong Kong Polytechnic University, Hong Kong, China
-- **Corresponding Author**: Yongbao Chen (chenyongbao@usst.edu.cn)
-- **Repository URL**: https://github.com/liujiakai-111/Transfer-Learning-building-energy
+- **Corresponding author:** Yongbao Chen (`chenyongbao@usst.edu.cn`)
+- **Repository:** <https://github.com/liujiakai-111/Target-Domain-Local-Support-Enrichment-Framework--chilled-water-forecasting>
 
-## Research Overview
+## Research overview
 
-This study addresses building cooling load prediction under data-scarce conditions by developing a novel transfer learning framework. The key contributions include:
+Cooling load forecasting models often have to be developed from only a few days of measurements. Transfer learning can reduce this data requirement, but it depends on suitable source buildings and may transfer irrelevant patterns when the source and target buildings differ.
 
-1. **Source building selection optimization**: A multi-dimensional Dynamic Time Warping (DTW) similarity measurement method
-2. **Multi-feature integration**: Weighted similarity analysis incorporating both cooling load and meteorological parameters
-3. **Comprehensive model development**: Five prediction models including baseline and transfer learning variants
-4. **Empirical validation**: Real office building data from five different climate zones
+The proposed target domain enhancement (TDE) framework uses only data from the target building. It generates controlled residual variations from local weather, calendar information, and measured load patterns. Generated samples are screened using the target training data, and useful samples are retained for self-supervised learning (SSL) pretraining. The forecasting model is then fine-tuned using measured target-building labels. Synthetic load values are not used as one-step-ahead forecasting labels.
 
-## Methodology
+## Framework
 
-### Data Preprocessing
-- Data cleaning: outlier removal, missing value imputation, weekend data filtering
-- Feature engineering: 
-  - Temporal features (sinusoidal encoding of hour and day)
-  - Lag features (1, 2, 3, 24, 48-hour lags)
-  - Statistical features (3-hour and 24-hour moving averages)
-  - Cross-features (temperature-to-humidity ratio)
-  - Meteorological parameters and occupancy schedule
+The workflow contains five main stages:
 
-### Multi-dimensional DTW Similarity
-- Weighted Euclidean distance based on feature importance
-- Features considered: cooling load, air temperature, dew point temperature
-- Source building selection: Top 3 most similar buildings
+1. **Target data split and preprocessing**  
+   Each building is divided chronologically into target training, validation, and test periods. Normalization is fitted only on the target training data.
 
-### Prediction Models
-Five models were implemented and compared:
+2. **Input window construction**  
+   Measured loads, local weather, and calendar variables are converted into sliding windows for one-hour-ahead forecasting.
 
-| Model Type | Model Name | Description |
-|------------|------------|-------------|
-| Baseline | LightGBM | Gradient boosting baseline |
-| Baseline | LSTM | Long Short-Term Memory baseline |
-| Transfer Learning | LightGBM-WI | LightGBM with weight initialization |
-| Transfer Learning | LSTM-FT | LSTM with fine-tuning |
-| Transfer Learning | LSTM-FE | LSTM with feature extraction |
+3. **Residual trajectory generation**  
+   A conditional generator produces continuous residual variations using weather and calendar information. These residuals are added to measured load trajectories to create new samples that remain consistent with the observed patterns.
 
-## Data Source
+4. **Candidate screening and selection**  
+   Plausibility screening, forecasting utility checks, operating-regime checks, scoring, and balanced sampling determine which synthetic windows are retained. Candidate evaluation uses only the target training data and its inner folds.
 
-This study utilizes the **Building Data Genome Project 2 (BDGP2)** dataset:
+5. **SSL pretraining and forecasting**  
+   Selected synthetic windows are used with measured windows during SSL pretraining. Supervised fine-tuning uses measured target-training windows and measured one-step-ahead labels. Validation determines whether TDE is retained; otherwise, the traditional LSTM result is used. Test data are used only for final evaluation.
 
-- Dataset URL: https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2
-- Citation: Miller, C. et al. The Building Data Genome Project 2, energy meter data from the ASHRAE Great Energy Predictor III competition. Sci Data 7, 368 (2020).
-- Time period: 2016-2017 (hourly data)
-- Building selection: 5 target office buildings and 25 source office buildings
-- Climate zones: Desert, Humid subtropical, Humid continental
+## Experimental design
 
-## Expected Repository Structure
+The main experiment includes:
 
-Transfer-Learning-building-energy/
+- 30 office buildings from six weather station sites;
+- eight target-training lengths: 1, 3, 5, 7, 10, 14, 21, and 28 days;
+- 240 building and support-length combinations;
+- a fixed one-hour prediction horizon;
+- the same LSTM architecture, features, data split, and supervised loss for all forecasting strategies;
+- three random seeds for each configuration;
+- module-level ablations, candidate diagnostics, and site sensitivity analysis.
+
+The three forecasting strategies are:
+
+- **Strategy A:** traditional supervised LSTM;
+- **Strategy B:** SSL pretraining with measured target-training windows, followed by supervised fine-tuning;
+- **Strategy C:** SSL pretraining with measured and selected synthetic windows, followed by supervised fine-tuning. Validation falls back to Strategy A when Strategy C does not improve performance.
+
+Two additional datasets are used to examine the feasibility of applying TDE to new buildings and related cooling load forecasting tasks.
+
+## Main results
+
+Across the 240 combinations, TDE reduced CVRMSE by an average of **10.16%** compared with the traditional LSTM, and **79.58%** of the combinations improved.
+
+- With 1 to 7 days of target training data, the mean CVRMSE improvement was **4.18%**, and 69.17% of the combinations improved.
+- With 10 to 28 days of target training data, the mean improvement increased to **16.13%**, and 90.00% of the combinations improved.
+- Residual trajectory generation made the largest contribution among the tested components. It increased the mean CVRMSE improvement from 9.07% to 10.16% and the percentage of improved combinations from 61.67% to 79.58% compared with independent-window generation.
+- The improvements remained consistent across different weather station sites. Results from the additional datasets further support application to new buildings and related forecasting tasks.
+
+These findings show that TDE can improve cooling load forecasting from limited local measurements without relying on source-building data.
+
+## Data
+
+The main experiment uses office-building chilled-water meter data, metadata, and weather records from the **Building Data Genome Project 2 (BDG2)**:
+
+- Dataset: <https://www.kaggle.com/datasets/claytonmiller/buildingdatagenomeproject2>
+- Reference: Miller, C. et al. *The Building Data Genome Project 2, energy meter data from the ASHRAE Great Energy Predictor III competition*. Scientific Data 7, 368 (2020). <https://doi.org/10.1038/s41597-020-00712-x>
+
+The exploratory external cases use:
+
+- **LBNL Building 59:** <https://bbd.labworks.org/ds/bbd/lbnlbldg59>
+- **TUM-EMT Open Energy Data Collection:** <https://collab.dvb.bayern/spaces/TUMenmantech/pages/557810667/TUM-EMT+Open+Energy+Data+Collection>
+
+Raw datasets are not redistributed in this repository. Users must download them from the original providers and follow the corresponding data licenses and terms of use. Processing scripts and dataset instructions will be included in the code release.
+
+## Expected repository structure
+
+```text
+target-domain-enhancement/
 ├── README.md
+├── LICENSE
 ├── requirements.txt
 ├── .gitignore
+├── configs/
+│   ├── main_experiment.yaml
+│   ├── ablation.yaml
+│   └── external_cases.yaml
 ├── data/
-│ ├── raw/ # Original BDGP2 data
-│ ├── processed/ # Preprocessed data
-│ └── sample/ # Sample data for testing
+│   ├── README.md
+│   ├── raw/
+│   ├── interim/
+│   └── processed/
+├── src/
+│   ├── preprocessing/
+│   ├── features/
+│   ├── generation/
+│   ├── screening/
+│   ├── ssl/
+│   ├── forecasting/
+│   └── evaluation/
 ├── scripts/
-│ ├── data_preprocessing.py
-│ ├── dtw_similarity.py
-│ └── feature_engineering.py
-├── models/
-│ ├── lightgbm_models.py
-│ ├── lstm_models.py
-│ └── transfer_strategies.py
-├── config/
-│ └── hyperparameters.yaml
-├── utils/
-│ ├── metrics.py
-│ └── visualization.py
-└── results/ # Output directory
+│   ├── prepare_data.py
+│   ├── run_main_experiment.py
+│   ├── run_ablations.py
+│   ├── run_external_cases.py
+│   └── generate_figures.py
+├── results/
+│   ├── README.md
+│   └── summary/
+└── tests/
+```
 
-## Technical Requirements
+The final directory names and commands may be adjusted during code organization, but the release will preserve the complete workflow used in the manuscript.
 
-- Python 3.8+
-- Key Python libraries: pandas, numpy, scikit-learn, lightgbm, torch/tensorflow, fastdtw, matplotlib
+## Technical requirements
 
-## Key Results
+- Python 3.9.7
+- NumPy 2.0.2
+- pandas 2.2.3
+- Matplotlib 3.9.4
+- scikit-learn 1.6.0
+- PyTorch 2.5.1
+- CUDA 11.8
 
-Based on our experimental evaluation:
+## Reproduction
 
-1. Transfer learning effectiveness:
-   - LightGBM-WI: 15.75% average reduction in CVRMSE compared to baseline
-   - LSTM-FT: 13.19% average reduction in CVRMSE compared to baseline
-
-2. Source selection importance:
-   - DTW-based screening further reduced prediction error by 1.62% (LightGBM-WI) and 13.65% (LSTM-FT) compared to using all source buildings
-
-3. Model comparison insights:
-   - LSTM generally outperformed LightGBM in baseline comparisons
-   - Fine-tuning was more effective than feature extraction for LSTM models
-   - LightGBM-WI offered better stability while LSTM-FT achieved higher accuracy peaks
-
-## Usage Instructions
-
-Once released, users can reproduce our experiments with the following steps:
+After the code release, the intended workflow will be:
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
 
-# Run data preprocessing
-python scripts/data_preprocessing.py
+# Prepare the downloaded datasets
+python scripts/prepare_data.py
 
-# Calculate building similarities
-python scripts/dtw_similarity.py
+# Run the 30-building experiment
+python scripts/run_main_experiment.py
 
-# Train and evaluate models
-python models/lightgbm_models.py
-python models/lstm_models.py
+# Run module-level ablations
+python scripts/run_ablations.py
+
+# Run the external cases
+python scripts/run_external_cases.py
+
+# Reproduce manuscript figures and summary tables
+python scripts/generate_figures.py
 ```
+
+Detailed configuration files, expected inputs, random seeds, output paths, and figure-generation instructions will be supplied with the organized code release.
+
 ## Citation
-If you use this work in your research, please cite:
-@article{liu2025dtwtransfer,
-  title={A Dynamic Time Warping-Enhanced Transfer Learning Framework for Cooling Load Prediction in Data-Scarce Buildings: A Multi-Building Case Study},
-  author={Liu, Jiakai and Chen, Yongbao and Chen, Zhe},
-  journal={Submitted for publication},
-  year={2025}
+
+If you use this repository, please cite the associated manuscript. The final journal citation and DOI will be added after publication.
+
+```bibtex
+@article{liu2026tde,
+  title   = {Building cooling load forecasting with limited data: A few-shot target domain enhancement (TDE) framework},
+  author  = {Liu, Jiakai and Chen, Yongbao and Luo, Jiahang and Chen, Zhe},
+  journal = {Manuscript submitted for publication},
+  year    = {2026}
 }
+```
+
+## License
+
+The source code will be released under the MIT License. Dataset copyrights and licenses remain with the original data providers.
 
 ## Contact
-For questions about the paper: Yongbao Chen (chenyongbao@usst.edu.cn)
-For questions about the code: Jiakai Liu (1602252955@qq.com)
-Repository updates will be provided upon manuscript acceptance
 
-## Reproducibility Commitment
-We are committed to open science and will provide:
-1.Complete implementation of all experiments described in the paper
-2.Detailed documentation and step-by-step instructions
-3.Example data and configuration files
-4.Full reproducibility guide
+- **Questions about the paper:** Yongbao Chen, `chenyongbao@usst.edu.cn`
+- **Questions about the code:** Jiakai Liu, `1602252955@qq.com`
+- University of Shanghai for Science and Technology
 
+Repository updates and release information will be posted after manuscript acceptance.
+
+## Reproducibility commitment
+
+The public release will include:
+
+1. the implementation used for the main experiment and ablation studies;
+2. preprocessing and feature-construction scripts;
+3. residual generation, candidate screening, SSL pretraining, and fine-tuning code;
+4. experiment configurations and fixed random seeds;
+5. compact result summaries and scripts for reproducing the manuscript figures;
+6. instructions for preparing the external datasets.
