@@ -30,3 +30,8 @@ data/
 ├── interim/
 ├── processed/
 └── README.md
+```
+
+The exact required filenames and preprocessing commands will be documented with the public code release.
+
+Raw and processed datasets are excluded from Git tracking. Users must comply with the licenses and terms specified by the original data providers.
