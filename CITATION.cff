@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated manuscript."
+title: "Target Domain Enhancement for Cooling Load Forecasting with Limited Data"
+type: software
+authors:
+  - family-names: Liu
+    given-names: Jiakai
+    email: 1602252955@qq.com
+    affiliation: University of Shanghai for Science and Technology
+
+repository-code: "https://github.com/liujiakai-111/Target-Domain-Local-Support-Enrichment-Framework--chilled-water-forecasting"
+license: MIT
+
+preferred-citation:
+  type: article
+  title: "Building cooling load forecasting with limited data: A few-shot target domain enhancement (TDE) framework"
+  authors:
+    - family-names: Liu
+      given-names: Jiakai
+    - family-names: Chen
+      given-names: Yongbao
+    - family-names: Luo
+      given-names: Jiahang
+    - family-names: Chen
+      given-names: Zhe
+  year: 2026
