@@ -95,6 +95,7 @@ Raw datasets are not redistributed in this repository. Users must download them 
 target-domain-enhancement/
 ├── README.md
 ├── LICENSE
+├── CITATION.cff
 ├── requirements.txt
 ├── .gitignore
 ├── configs/
@@ -104,6 +105,7 @@ target-domain-enhancement/
 ├── data/
 │   ├── README.md
 │   ├── raw/
+│   ├── external/
 │   ├── interim/
 │   └── processed/
 ├── src/
